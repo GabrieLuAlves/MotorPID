@@ -1,81 +1,54 @@
-#define ENA 11
-#define IN1 13
-#define IN2 12
-#define ENCODER_PIN 5
+#include "encoder.h"
+#include "PID.h"
+#include "motor.h"
+
+#define ENA 3
+#define IN1 4
+#define IN2 2
 #define MEASURE_PERIOD 200.0
+#define ENCODER_PIN 5
 
 
-double setpoint_rpm = 60.0;
-double rpm = 0;
-
-const double motorMaxRpm = 300.0;
-double P = 0, I = 0, D = 0;
-const double kp = 3.5, ki = 0.75, kd = 1; // com 100 ms de delay
-double error = 0;
-double control = 0;
+float rpm = 0;
 unsigned pwm = 0;
-double previousError = 0;
 
-void readSetpoint();
-void measureRPM();
-void calculatePWM();
-
+Encoder encoder(210);
+PID pid(3.5, 0.75, 0, 60, 300, 0);
+Motor motor(ENA, IN1, IN2);
+void calculatePWM(void);
+void displayValues(void);
 
 void setup() {
   Serial.begin(115200);
-
-  pinMode(ENCODER_PIN, INPUT);
+  
   pinMode(ENA, OUTPUT);
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
+  pinMode(ENCODER_PIN, INPUT);
 
-  interrupts();
-
-  TCCR1A = 0 << COM1A1 | 0 << COM1A0 | 0 << COM1B1 | 0 << COM1B0 | 0 << WGM11 | 0 << WGM10;
+  encoder.configure();
   
-  TCCR1B = 0 << ICNC1 | 0 << ICES1 | 0 << WGM13 | 1 << WGM12 | 1 << CS12 | 1 << CS11 | 1 << CS10;
-  TIMSK1 = 0 << OCIE1B | 0 << OCIE1A | 0 << TOIE1;
-  TCNT1 = 0;
-
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
+  motor.setDirection(FORWARD);
 }
 
 void loop() {
-  measureRPM();
   calculatePWM();
-  analogWrite(ENA, pwm);
-  
+  displayValues();
+}
+
+void calculatePWM(void) {
+  rpm = encoder.measureRpm(50);
+  pwm = floor(pid.calculatePID(rpm) * 255.0/ 300.0);
+  motor.setPwm(pwm);
+}
+
+void displayValues(void) {
   Serial.print(rpm);
   Serial.print('\t');
-  Serial.print(setpoint_rpm);
+  Serial.print(pid.setpoint);
   Serial.print('\t');
   Serial.print(pwm);
   Serial.print('\t');
 
   Serial.println();
-}
-
-void measureRPM() {
-  unsigned x = 20;
-  while(digitalRead(ENCODER_PIN) && x--);
-  TCNT1 = 0;
-  delay(50);
-  rpm = TCNT1 / 209.0 / 0.05 * 60;
-}
-
-void calculatePWM() {
-  error = setpoint_rpm - rpm;
-
-  P = error;
-  I = I + error;
-  D = error - previousError;
-
-  control = P * kp + I * ki + D * kd;
-  if(control > 300) control = 300;
-  if(control < 0)   control = 0;
-
-  pwm = floor(control * 255.0 / 300.0);
-
-  previousError = error;
 }
