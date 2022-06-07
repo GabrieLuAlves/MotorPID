@@ -15,9 +15,12 @@ void Encoder::configure() {
 
 float Encoder::measureRpm(unsigned timeSpan) {
   unsigned x = 20;
+  byte count = 0;
   while(digitalRead(5) && x--);
   TCNT1 = 0;
   delay(timeSpan);
+
+  count = TCNT1;
   
-  return float(TCNT1) / float(this->signalsPerRotation) / (timeSpan / 1000.0) * 60;
+  return float(count) / float(this->signalsPerRotation) / (timeSpan / 1000.0) * 60;
 }

@@ -6,8 +6,8 @@
 
 enum Direction {
   FORWARD,
-  BACKWARDS,
-  STOP
+  BACKWARD,
+  RELEASE
 };
 
 class Motor {

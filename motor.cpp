@@ -18,11 +18,11 @@ void Motor::setDirection(Direction direction) {
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
       break;
-    case BACKWARDS:
+    case BACKWARD :
       digitalWrite(IN1, LOW);
       digitalWrite(IN2, HIGH);
       break;
-    case STOP:
+    case RELEASE:
       digitalWrite(IN1, LOW);
       digitalWrite(IN2, LOW);
       break;

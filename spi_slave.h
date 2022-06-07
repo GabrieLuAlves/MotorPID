@@ -5,9 +5,10 @@
 
 class SPISlave{
 public:
-  void configure();
-  bool available();
-  unsigned readUnsigned();
+  void configure() const;
+  void onTransferFinished(void (*)(short)) const;
 };
+
+extern const SPISlave spi;
 
 #endif

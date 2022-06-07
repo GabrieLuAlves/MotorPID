@@ -1,6 +1,7 @@
 #include "encoder.h"
 #include "PID.h"
 #include "motor.h"
+#include "spi_slave.h"
 
 #define ENA 3
 #define IN1 4
@@ -15,8 +16,17 @@ unsigned pwm = 0;
 Encoder encoder(210);
 PID pid(3.5, 0.75, 0, 60, 300, 0);
 Motor motor(ENA, IN1, IN2);
+
 void calculatePWM(void);
 void displayValues(void);
+
+void receive(short value) {
+  if(value < 0) motor.setDirection(BACKWARD);
+  else if(value > 0) motor.setDirection(FORWARD);
+  else motor.setDirection(RELEASE);
+
+  pid.setpoint = abs(value);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -29,6 +39,10 @@ void setup() {
   encoder.configure();
   
   motor.setDirection(FORWARD);
+
+  spi.configure();
+
+  spi.onTransferFinished(receive);
 }
 
 void loop() {
