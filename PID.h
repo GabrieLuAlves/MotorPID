@@ -9,7 +9,6 @@ public:
 
   double setpoint;
   double maxControl, minControl;
-private:
   double kp = 0, ki = 0, kd = 0;
 };
 

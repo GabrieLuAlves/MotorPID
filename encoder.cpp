@@ -1,6 +1,11 @@
 #include "Arduino.h"
 #include "encoder.h"
 
+#define LAST_READINGS_ARRAY_SIZE 1
+
+float measure = 0;
+float lastReadings[LAST_READINGS_ARRAY_SIZE];
+unsigned index = 0;
 
 Encoder::Encoder(byte signalsPerRotation) {
   this->signalsPerRotation = signalsPerRotation;
@@ -14,13 +19,34 @@ void Encoder::configure() {
 }
 
 float Encoder::measureRpm(unsigned timeSpan) {
-  unsigned x = 20;
-  byte count = 0;
-  while(digitalRead(5) && x--);
-  TCNT1 = 0;
-  delay(timeSpan);
-
-  count = TCNT1;
+  bool timeout = false;
+  unsigned t = 0, t0 = 0;
   
-  return float(count) / float(this->signalsPerRotation) / (timeSpan / 1000.0) * 60;
+  unsigned timeoutCounter = 0;
+  byte state = digitalRead(5);
+  for(timeoutCounter = 30000 ; timeoutCounter && digitalRead(5) == state ; timeoutCounter--);
+  if(timeoutCounter == 0) timeout = true;
+
+  t0 = micros();
+
+  state = !state;
+  for(timeoutCounter = 30000 ; timeoutCounter && digitalRead(5) == state ; timeoutCounter--);
+  if(timeoutCounter == 0) timeout = true;
+
+  t = micros();
+
+  if(timeout) measure = 0;
+  else measure = 0.1 * (1000000.0 / ((t - t0) * 420.0) * 60) + 0.9 * measure;
+
+  /*
+  lastReadings[index++] = measure;
+  if(index >= LAST_READINGS_ARRAY_SIZE) lastReadings[index++] = 0;
+
+  float sum = 0.0;
+  for(unsigned i = 0 ; i < LAST_READINGS_ARRAY_SIZE ; i++) sum += lastReadings[i];
+  
+  return sum / LAST_READINGS_ARRAY_SIZE;
+  */
+
+  return measure;
 }

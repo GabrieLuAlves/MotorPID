@@ -9,12 +9,12 @@
 #define MEASURE_PERIOD 200.0
 #define ENCODER_PIN 5
 
-
 float rpm = 0;
 unsigned pwm = 0;
 
 Encoder encoder(210);
-PID pid(3.5, 0.75, 0, 60, 300, 0);
+PID pid(9.98046875, 0.13037109, 0, 60, 255, 0);
+
 Motor motor(ENA, IN1, IN2);
 
 void calculatePWM(void);
@@ -46,13 +46,17 @@ void setup() {
 }
 
 void loop() {
+  // pid.kp = analogRead(A0) / 1024.0 * 10 + 0;
+  // pid.ki = analogRead(A1) / 1024.0 * 0.5;
   calculatePWM();
   displayValues();
 }
 
 void calculatePWM(void) {
   rpm = encoder.measureRpm(50);
-  pwm = floor(pid.calculatePID(rpm) * 255.0/ 300.0);
+  
+  pwm = floor(pid.calculatePID(rpm));
+  
   motor.setPwm(pwm);
 }
 
@@ -63,6 +67,9 @@ void displayValues(void) {
   Serial.print('\t');
   Serial.print(pwm);
   Serial.print('\t');
-
+  Serial.print(pid.kp, 8);
+  Serial.print('\t');
+  Serial.print(pid.ki, 8);
+  Serial.print('\t');
   Serial.println();
 }
