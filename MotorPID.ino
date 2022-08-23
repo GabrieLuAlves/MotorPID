@@ -12,12 +12,12 @@
 float rpm = 0;
 unsigned pwm = 0;
 
-Encoder encoder(210);
-PID pid(9.98046875, 0.13037109, 0, 60, 255, 0);
+Encoder encoder(420);
+// PID pid(5.93359375, 0.49951171, 0, 60, 255, 0);
+PID pid(5.93359375, 0.49951171, 0, 60, 255, 0);
 
 Motor motor(ENA, IN1, IN2);
 
-void calculatePWM(void);
 void displayValues(void);
 
 void receive(short value) {
@@ -29,14 +29,12 @@ void receive(short value) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(2000000);
   
   pinMode(ENA, OUTPUT);
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(ENCODER_PIN, INPUT);
-
-  encoder.configure();
   
   motor.setDirection(FORWARD);
 
@@ -45,31 +43,23 @@ void setup() {
   spi.onTransferFinished(receive);
 }
 
-void loop() {
-  // pid.kp = analogRead(A0) / 1024.0 * 10 + 0;
-  // pid.ki = analogRead(A1) / 1024.0 * 0.5;
-  calculatePWM();
-  displayValues();
+void loop() {/*
+  pid.kp = analogRead(A0) / 1024.0 * 4 + 4;
+  pid.ki = analogRead(A1) / 1024.0 * 0.5;*/
+ 
+  rpm = encoder.measureRpm();
+  pwm = floor(pid.calculatePID(rpm));
+  motor.setPwm(pwm);
+  
+  // displayValues();
 }
 
-void calculatePWM(void) {
-  rpm = encoder.measureRpm(50);
-  
-  pwm = floor(pid.calculatePID(rpm));
-  
-  motor.setPwm(pwm);
-}
+static unsigned x = 0;
 
 void displayValues(void) {
   Serial.print(rpm);
   Serial.print('\t');
-  Serial.print(pid.setpoint);
-  Serial.print('\t');
   Serial.print(pwm);
   Serial.print('\t');
-  Serial.print(pid.kp, 8);
-  Serial.print('\t');
-  Serial.print(pid.ki, 8);
-  Serial.print('\t');
-  Serial.println();
+  Serial.println(micros());
 }

@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Data Collected During Experiments
+collected_data/*

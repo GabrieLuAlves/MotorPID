@@ -4,13 +4,11 @@
 
 class Encoder {
 public:
-  Encoder(byte);
+  Encoder(short);
   
-  void configure();
-  
-  float measureRpm(unsigned);
+  float measureRpm();
 private:
-  byte signalsPerRotation;
+  byte togglesPerRotation;
 };
 
 #endif
