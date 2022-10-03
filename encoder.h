@@ -6,9 +6,13 @@ class Encoder {
 public:
   Encoder(short);
   
-  float measureRpm();
+  float getRpm();
 private:
+  static inline void onToggle();
+  
   byte togglesPerRotation;
+  static volatile double frequency;
+  static volatile long unsigned t, t0;
 };
 
 #endif

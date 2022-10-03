@@ -30,6 +30,8 @@ void Motor::setDirection(Direction direction) {
 }
 
 void Motor::setPwm(byte pwm) {
+  if(pwm > 255) pwm = 255;
+  
   this->pwm = pwm;
   analogWrite(ENA, pwm);
 }
